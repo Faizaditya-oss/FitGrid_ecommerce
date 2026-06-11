@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #111827; /* Gray 900 for dark elegant look */
+  --color-secondary: #4b5563; /* Gray 600 */
+  --color-accent: #facc15; /* Yellow 400 for highlights */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  
+  --radius-xl: 1rem;
+}
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  /* Hover animations */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .hover-zoom {
+    @apply transition-transform duration-500 hover:scale-105;
+  }
+  
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+}

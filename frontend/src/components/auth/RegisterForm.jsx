@@ -1,0 +1,128 @@
+import { useState, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
+
+const RegisterForm = () => {
+  const [formData, setFormData] = useState({
+    emailOrUsername: '',
+    name: '',
+    phone: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    // Dummy Auth Logic
+    setTimeout(() => {
+      login({ id: 2, name: formData.name || 'User', email: formData.emailOrUsername });
+      navigate('/');
+    }, 1000);
+  };
+
+  return (
+    <div className="w-full max-w-[540px] bg-white rounded-[2rem] p-8 sm:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <p className="text-base text-slate-800 font-medium mb-1">
+            Welcome to <span className="text-blue-600 font-semibold">FitGrid</span>
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 tracking-tight mt-1">Sign up</h1>
+        </div>
+        <div className="text-right mt-1">
+          <p className="text-[11px] text-slate-400 font-medium mb-0.5">Have an Account ?</p>
+          <Link to="/login" className="text-xs text-blue-600 font-medium hover:underline">Sign in</Link>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label htmlFor="emailOrUsername" className="text-sm font-medium text-slate-700">Enter your username or email address</label>
+          <input 
+            type="text" 
+            id="emailOrUsername" 
+            name="emailOrUsername"
+            value={formData.emailOrUsername}
+            onChange={handleChange}
+            required
+            placeholder="Username or email address"
+            className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium text-slate-700">User name</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="User name"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="phone" className="text-sm font-medium text-slate-700">Contact Number</label>
+            <input 
+              type="tel" 
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              placeholder="Contact Number"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium text-slate-700">Enter your Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            placeholder="Password"
+            className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
+          />
+        </div>
+
+        <div className="pt-4 flex justify-end">
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-900 text-white font-medium py-3 px-12 rounded-xl transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Wait...' : 'Sign up'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default RegisterForm;
