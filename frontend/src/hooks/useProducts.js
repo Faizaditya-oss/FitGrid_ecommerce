@@ -5,8 +5,9 @@ export const useProducts = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const loadProducts = () => {
-      setProducts(productService.getProducts());
+    const loadProducts = async () => {
+      const data = await productService.getProducts();
+      setProducts(data);
     };
     loadProducts();
     window.addEventListener('products_updated', loadProducts);

@@ -5,16 +5,10 @@ import { orderService } from '../../services/orderService';
 import OrderTable from '../../components/admin/OrderTable';
 import toast from 'react-hot-toast';
 
+import { formatRupiah } from '../../utils/currency';
+
 const OrderModal = ({ order, onClose }) => {
   if (!order) return null;
-  
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
@@ -79,7 +73,7 @@ const OrderModal = ({ order, onClose }) => {
                       <p className="text-xs text-slate-500">Qty: {item.qty}</p>
                     </div>
                   </div>
-                  <p className="font-medium text-slate-900 text-sm">{formatCurrency(item.price * item.qty)}</p>
+                  <p className="font-medium text-slate-900 text-sm">{formatRupiah(item.price * item.qty)}</p>
                 </div>
               ))}
             </div>
@@ -88,7 +82,7 @@ const OrderModal = ({ order, onClose }) => {
         
         <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
           <span className="font-bold text-slate-700">Order Total</span>
-          <span className="text-xl font-bold text-slate-900">{formatCurrency(order.total)}</span>
+          <span className="text-xl font-bold text-slate-900">{formatRupiah(order.total)}</span>
         </div>
       </div>
     </div>

@@ -4,21 +4,18 @@ import { authService } from '../services/authService';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const currentUser = authService.getCurrentUser();
+    return currentUser || null;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadUserSession = () => {
       const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
+      setUser(currentUser || null);
     };
 
-    loadUserSession();
     window.addEventListener('users_updated', loadUserSession);
     return () => window.removeEventListener('users_updated', loadUserSession);
   }, []);

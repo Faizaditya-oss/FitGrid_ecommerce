@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react';
+import { formatRupiah } from '../../utils/currency';
 
 const ProductInfo = ({ product }) => {
   return (
@@ -19,7 +20,7 @@ const ProductInfo = ({ product }) => {
 
       <div className="mb-6">
         <span className="text-3xl font-extrabold text-slate-900">
-          {typeof product.price === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price) : product.price}
+          {formatRupiah(product.price)}
         </span>
       </div>
 

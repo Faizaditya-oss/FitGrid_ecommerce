@@ -3,6 +3,8 @@ import { useContext } from 'react';
 import { CartContext } from '../../context/CartContext';
 import { toast } from 'react-hot-toast';
 import { productService } from '../../services/productService';
+import { formatRupiah } from '../../utils/currency';
+import ProductGrid from '../../components/product/ProductGrid';
 import heroImg from '../../assets/images/hero/hero.jpg';
 import catalog1 from '../../assets/images/products/catalog1.jpg';
 import catalog2 from '../../assets/images/products/catalog2.jpg';
@@ -78,18 +80,12 @@ const Home = () => {
   const trendingProducts = allProducts.slice(0, 4);
 
   const handleQuickAdd = (e, product) => {
-    e.stopPropagation(); // Prevent navigating to product detail if the card is clickable
+    e.stopPropagation();
     
-    const fullProduct = productService.getProductById(product.id) || product;
-    const defaultSize = fullProduct.sizes ? fullProduct.sizes[0] : "All Size";
-    
-    let defaultColor = "Standard";
-    if (fullProduct.name === "Basic T-Shirt") defaultColor = "Black";
-    else if (fullProduct.name === "Denim Jeans") defaultColor = "Classic Blue";
-    else if (fullProduct.name === "Red Flannel Shirt") defaultColor = "Red";
-    else if (fullProduct.name === "Women's Trousers") defaultColor = "Beige";
+    const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : "All Size";
+    const defaultColor = product.color || "Standard";
 
-    const maxStock = fullProduct.stock || 0;
+    const maxStock = parseInt(product.stock, 10) || 0;
     
     const itemsInCart = (cart || []).filter(item => item.productId === product.id).reduce((acc, item) => acc + item.quantity, 0);
     const availableStock = Math.max(0, maxStock - itemsInCart);
@@ -101,12 +97,14 @@ const Home = () => {
       return;
     }
 
+    const numericPrice = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+
     const cartItem = {
       id: `${product.id}-${defaultSize}-${defaultColor}`,
       productId: product.id,
       name: product.name,
       category: product.category,
-      price: fullProduct.price,
+      price: numericPrice,
       size: defaultSize,
       color: defaultColor,
       image: product.image,
@@ -199,7 +197,7 @@ const Home = () => {
               <div className="px-2">
                 <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
                 <p className="text-secondary mb-1">{product.category}</p>
-                <p className="text-lg font-bold text-slate-900 mt-1">Rp {Number(product.price).toLocaleString('id-ID')}</p>
+                <p className="text-lg font-bold text-slate-900 mt-1">{formatRupiah(product.price)}</p>
               </div>
             </div>
           ))}

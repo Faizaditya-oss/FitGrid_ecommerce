@@ -1,13 +1,7 @@
 import { Edit, Trash2, AlertCircle } from 'lucide-react';
+import { formatRupiah } from '../../utils/currency';
 
 const ProductTable = ({ products, onEdit, onDelete }) => {
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   return (
     <div className="overflow-x-auto">
@@ -31,7 +25,7 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
               </td>
               <td className="p-4 font-medium text-slate-900">{product.name}</td>
               <td className="p-4 text-slate-600">{product.category}</td>
-              <td className="p-4 font-medium text-slate-900">{formatCurrency(product.price)}</td>
+              <td className="p-4 font-medium text-slate-900">{formatRupiah(product.price)}</td>
               <td className="p-4">
                 <div className="flex items-center gap-2 text-slate-600">
                   <span className="font-medium">{product.stock}</span>

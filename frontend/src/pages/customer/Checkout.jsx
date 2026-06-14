@@ -5,6 +5,7 @@ import { CartContext } from '../../context/CartContext';
 import { AuthContext } from '../../context/AuthContext';
 import { orderService } from '../../services/orderService';
 import { Navigate } from 'react-router-dom';
+import { formatRupiah } from '../../utils/currency';
 
 const Checkout = () => {
   const { cart, clearCart } = useContext(CartContext);
@@ -216,7 +217,7 @@ const Checkout = () => {
                         </div>
                       </div>
                       <span className="font-bold text-slate-900">
-                        {option.price === 0 ? 'Free' : `Rp ${option.price.toLocaleString('id-ID')}`}
+                        {option.price === 0 ? 'Free' : formatRupiah(option.price)}
                       </span>
                     </div>
                   </label>
@@ -330,7 +331,7 @@ const Checkout = () => {
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-xs font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-md">Qty {item.quantity}</p>
                       <div className="text-sm font-bold text-slate-900">
-                        Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                        {formatRupiah(item.price * item.quantity)}
                       </div>
                     </div>
                   </div>
@@ -341,19 +342,19 @@ const Checkout = () => {
             <div className="space-y-3 pt-6 border-t border-slate-200">
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Subtotal</span>
-                <span className="font-semibold text-slate-900">Rp {subtotal.toLocaleString('id-ID')}</span>
+                <span className="font-semibold text-slate-900">{formatRupiah(subtotal)}</span>
               </div>
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Shipping</span>
-                <span className="font-semibold text-slate-900">{shipping === 0 ? 'Free' : `Rp ${shipping.toLocaleString('id-ID')}`}</span>
+                <span className="font-semibold text-slate-900">{shipping === 0 ? 'Free' : formatRupiah(shipping)}</span>
               </div>
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Tax (10%)</span>
-                <span className="font-semibold text-slate-900">Rp {tax.toLocaleString('id-ID')}</span>
+                <span className="font-semibold text-slate-900">{formatRupiah(tax)}</span>
               </div>
               <div className="flex justify-between items-center pt-5 mt-5 border-t border-slate-200">
                 <span className="text-lg font-bold text-slate-900">Total</span>
-                <span className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Rp {total.toLocaleString('id-ID')}</span>
+                <span className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{formatRupiah(total)}</span>
               </div>
             </div>
 

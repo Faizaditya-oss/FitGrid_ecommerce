@@ -1,13 +1,7 @@
 import { Eye, CheckCircle, RefreshCw } from 'lucide-react';
+import { formatRupiah } from '../../utils/currency';
 
 const OrderTable = ({ orders, onViewDetail, onVerifyPayment, onUpdateStatus }) => {
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -58,7 +52,7 @@ const OrderTable = ({ orders, onViewDetail, onVerifyPayment, onUpdateStatus }) =
               <td className="p-4 text-slate-500">{order.date}</td>
               <td className="p-4">{getPaymentBadge(order.paymentStatus)}</td>
               <td className="p-4">{getStatusBadge(order.orderStatus)}</td>
-              <td className="p-4 font-medium text-slate-900">{formatCurrency(order.total)}</td>
+              <td className="p-4 font-medium text-slate-900">{formatRupiah(order.total)}</td>
               <td className="p-4">
                 <div className="flex items-center justify-center gap-3">
                   <button 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { formatRupiah } from '../../utils/currency';
 
 const CartSummary = ({ subtotal, shipping, tax, discount }) => {
   const total = subtotal + shipping + tax - discount;
@@ -10,22 +11,22 @@ const CartSummary = ({ subtotal, shipping, tax, discount }) => {
       <div className="space-y-4 mb-6">
         <div className="flex justify-between text-slate-600 text-sm md:text-base">
           <span>Subtotal</span>
-          <span className="font-medium text-slate-900">Rp {subtotal.toLocaleString('id-ID')}</span>
+          <span className="font-medium text-slate-900">{formatRupiah(subtotal)}</span>
         </div>
         <div className="flex justify-between text-slate-600 text-sm md:text-base">
           <span>Shipping Fee</span>
           <span className="font-medium text-slate-900">
-            {shipping === 0 ? 'Free' : `Rp ${shipping.toLocaleString('id-ID')}`}
+            {shipping === 0 ? 'Free' : formatRupiah(shipping)}
           </span>
         </div>
         <div className="flex justify-between text-slate-600 text-sm md:text-base">
           <span>Tax (10%)</span>
-          <span className="font-medium text-slate-900">Rp {tax.toLocaleString('id-ID')}</span>
+          <span className="font-medium text-slate-900">{formatRupiah(tax)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between text-green-600 text-sm md:text-base">
             <span>Discount</span>
-            <span className="font-semibold">-Rp {discount.toLocaleString('id-ID')}</span>
+            <span className="font-semibold">-{formatRupiah(discount)}</span>
           </div>
         )}
       </div>
@@ -33,7 +34,7 @@ const CartSummary = ({ subtotal, shipping, tax, discount }) => {
       <div className="border-t border-slate-100 pt-5 mb-8">
         <div className="flex justify-between items-center">
           <span className="text-base font-semibold text-slate-900">Grand Total</span>
-          <span className="text-xl md:text-2xl font-extrabold text-slate-900">Rp {total.toLocaleString('id-ID')}</span>
+          <span className="text-xl md:text-2xl font-extrabold text-slate-900">{formatRupiah(total)}</span>
         </div>
       </div>
       

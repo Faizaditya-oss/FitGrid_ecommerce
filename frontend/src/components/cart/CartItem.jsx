@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import QuantitySelector from './QuantitySelector';
+import { formatRupiah } from '../../utils/currency';
 
 const CartItem = ({ item, maxQuantity, onUpdateQuantity, onRemove }) => {
   return (
@@ -42,7 +43,7 @@ const CartItem = ({ item, maxQuantity, onUpdateQuantity, onRemove }) => {
         {/* Price & Quantity */}
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
           <span className="text-lg font-bold text-slate-900">
-            Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+            {formatRupiah(item.price * item.quantity)}
           </span>
           <QuantitySelector 
             quantity={item.quantity} 

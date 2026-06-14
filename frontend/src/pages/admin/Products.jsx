@@ -5,20 +5,37 @@ import { useProducts } from '../../hooks/useProducts';
 import ProductTable from '../../components/admin/ProductTable';
 import toast from 'react-hot-toast';
 
+const EMPTY_FORM = {
+  name: '',
+  description: '',
+  category: 'Men',
+  color: '',
+  sizes: [],
+  price: '',
+  stock: '',
+  image: ''
+};
+
+const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
 const ProductModal = ({ isOpen, onClose, product, onSave }) => {
   const [formData, setFormData] = useState(
-    product || {
-      id: `p-${Date.now()}`,
-      name: '',
-      category: 'Men',
-      price: '',
-      stock: '',
-      status: 'Active',
-      image: 'https://placehold.co/150x200?text=New+Product'
-    }
+    product
+      ? { ...product, sizes: product.sizes || [] }
+      : { ...EMPTY_FORM }
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
+
+  const toggleSize = (size) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.includes(size)
+        ? prev.sizes.filter(s => s !== size)
+        : [...prev.sizes, size]
+    }));
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -59,7 +76,7 @@ const ProductModal = ({ isOpen, onClose, product, onSave }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const priceNum = Number(formData.price);
     const stockNum = Number(formData.stock);
@@ -73,11 +90,9 @@ const ProductModal = ({ isOpen, onClose, product, onSave }) => {
       return;
     }
 
-    onSave({
-      ...formData,
-      price: priceNum,
-      stock: stockNum
-    });
+    setIsSaving(true);
+    await onSave({ ...formData, price: priceNum, stock: stockNum });
+    setIsSaving(false);
     onClose();
   };
 
@@ -93,34 +108,56 @@ const ProductModal = ({ isOpen, onClose, product, onSave }) => {
         
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Product Name</label>
-            <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all" />
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Product Name *</label>
+            <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Classic White Shirt" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Category</label>
-            <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
-              <option value="Men">Men</option>
-              <option value="Women">Women</option>
-              <option value="Kids">Kids</option>
-              <option value="Unisex">Unisex</option>
-            </select>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
+            <textarea rows={3} value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Short product description..." className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Price (Rp)</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Category</label>
+              <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+                <option value="Kids">Kids</option>
+                <option value="Unisex">Unisex</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Color</label>
+              <input type="text" value={formData.color} onChange={(e) => setFormData({...formData, color: e.target.value})} placeholder="e.g. White, Black" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Price (Rp) *</label>
               <input required type="number" min="1" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Stock</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Stock *</label>
               <input required type="number" min="0" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Status</label>
-            <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
-              <option value="Active">Active</option>
-              <option value="Out of Stock">Out of Stock</option>
-            </select>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Available Sizes</label>
+            <div className="flex flex-wrap gap-2">
+              {SIZE_OPTIONS.map(size => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => toggleSize(size)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
+                    formData.sizes.includes(size)
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Product Image</label>
@@ -130,17 +167,19 @@ const ProductModal = ({ isOpen, onClose, product, onSave }) => {
                   <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
                 )}
               </div>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageChange} 
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100 transition-all cursor-pointer"
               />
             </div>
           </div>
           <div className="pt-4 flex gap-3 justify-end">
             <button type="button" onClick={onClose} className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
-            <button type="submit" className="px-5 py-2.5 bg-slate-900 text-white font-medium hover:bg-slate-800 rounded-xl transition-colors">Save Product</button>
+            <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-slate-900 text-white font-medium hover:bg-slate-800 rounded-xl transition-colors disabled:opacity-60">
+              {isSaving ? 'Saving...' : 'Save Product'}
+            </button>
           </div>
         </form>
       </div>
@@ -169,20 +208,23 @@ const Products = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = (productData) => {
+  const handleSaveProduct = async (productData) => {
     if (selectedProduct) {
-      const result = productService.updateProduct(productData);
+      const result = await productService.updateProduct(productData);
       if (result) toast.success('Product updated successfully!');
+      else toast.error('Failed to update product.');
     } else {
-      const result = productService.addProduct(productData);
+      const result = await productService.addProduct(productData);
       if (result) toast.success('Product added successfully!');
+      else toast.error('Failed to add product.');
     }
   };
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      productService.deleteProduct(id);
-      toast.success('Product deleted successfully!');
+      const result = await productService.deleteProduct(id);
+      if (result) toast.success('Product deleted successfully!');
+      else toast.error('Failed to delete product.');
     }
   };
 

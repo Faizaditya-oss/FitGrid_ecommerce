@@ -1,78 +1,131 @@
-import { productsData } from '../data/products';
-
-const STORAGE_KEY = 'fitgrid_products';
-
-// Initialize localStorage with initial data if empty
-const initProducts = () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(productsData));
-  }
-};
-
-initProducts();
+const API_URL = 'http://localhost:8000/api/products/';
 
 export const productService = {
-  getProducts: () => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  },
-
-  getProductById: (id) => {
-    const products = productService.getProducts();
-    return products.find(p => p.id === id);
-  },
-
-  addProduct: (product) => {
-    const products = productService.getProducts();
-    const stock = Number(product.stock) || 0;
-    const status = stock <= 0 ? 'Out of Stock' : (product.status || 'Active');
-    
-    const newProduct = {
-      ...product,
-      stock,
-      status,
-      id: product.id || `p-${Date.now()}`
-    };
-    
-    products.unshift(newProduct);
+  getProducts: async () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-      window.dispatchEvent(new Event('products_updated'));
-      return newProduct;
+      const response = await fetch(`${API_URL}getAll.php`);
+      const result = await response.json();
+      if (result.success) {
+        // Map backend structure to frontend structure
+        return result.data.map(p => ({
+          ...p,
+          id: p.product_id, // frontend expects id
+          image: p.image_url, // frontend expects image
+          sizes: p.size ? p.size.split(',') : [],
+          originalPrice: null, // you can add logic if you have original price in DB
+          discount: null,
+          isNew: false,
+          rating: 0,
+          reviews: 0
+        }));
+      }
+      return [];
     } catch (error) {
-      console.error('Error saving to localStorage', error);
-      alert('Failed to save product. The image might be too large or your browser storage is full.');
+      console.error('Error fetching products:', error);
+      return [];
+    }
+  },
+
+  getProductById: async (id) => {
+    try {
+      const response = await fetch(`${API_URL}getById.php?id=${id}`);
+      const result = await response.json();
+      if (result.success && result.data) {
+        const p = result.data;
+        return {
+          ...p,
+          id: p.product_id,
+          image: p.image_url,
+          sizes: p.size ? p.size.split(',') : [],
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching product details:', error);
       return null;
     }
   },
 
-  updateProduct: (product) => {
-    const products = productService.getProducts();
-    const index = products.findIndex(p => p.id === product.id);
-    
-    if (index !== -1) {
-      const stock = Number(product.stock) || 0;
-      const status = stock <= 0 ? 'Out of Stock' : (product.status || 'Active');
-      
-      products[index] = { ...products[index], ...product, stock, status };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  addProduct: async (product) => {
+    try {
+      const payload = {
+        name: product.name,
+        description: product.description || '',
+        category: product.category || '',
+        size: Array.isArray(product.sizes) ? product.sizes.join(',') : '',
+        color: product.color || '',
+        image_url: product.image || '',
+        price: product.price,
+        stock: product.stock || 0
+      };
+
+      const response = await fetch(`${API_URL}create.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result.success) {
         window.dispatchEvent(new Event('products_updated'));
-        return products[index];
-      } catch (error) {
-        console.error('Error saving to localStorage', error);
-        alert('Failed to update product. The image might be too large or your browser storage is full.');
-        return null;
+        return { ...product, id: result.data.product_id };
       }
+      alert(result.message);
+      return null;
+    } catch (error) {
+      console.error('Error adding product:', error);
+      return null;
     }
-    return null;
   },
 
-  deleteProduct: (id) => {
-    const products = productService.getProducts();
-    const updatedProducts = products.filter(p => p.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
-    window.dispatchEvent(new Event('products_updated'));
+  updateProduct: async (product) => {
+    try {
+      const payload = {
+        product_id: product.id,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        size: Array.isArray(product.sizes) ? product.sizes.join(',') : '',
+        color: product.color,
+        image_url: product.image,
+        price: product.price,
+        stock: product.stock
+      };
+
+      const response = await fetch(`${API_URL}update.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result.success) {
+        window.dispatchEvent(new Event('products_updated'));
+        return product;
+      }
+      alert(result.message);
+      return null;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      return null;
+    }
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      const response = await fetch(`${API_URL}delete.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: id })
+      });
+      const result = await response.json();
+      if (result.success) {
+        window.dispatchEvent(new Event('products_updated'));
+        return true;
+      }
+      alert(result.message);
+      return false;
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      return false;
+    }
   }
 };

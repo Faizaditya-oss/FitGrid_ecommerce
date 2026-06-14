@@ -4,16 +4,10 @@ import { useOrders } from '../../hooks/useOrders';
 import { Package, X, CheckCircle2, CircleDashed, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { formatRupiah } from '../../utils/currency';
+
 const OrderModal = ({ order, onClose }) => {
   if (!order) return null;
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount || 0);
-  };
 
   const steps = [
     { id: 'Pending', label: 'Order Created' },
@@ -107,10 +101,10 @@ const OrderModal = ({ order, onClose }) => {
                     {item.image && <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg bg-white object-cover border border-slate-200" />}
                     <div>
                       <p className="font-bold text-slate-900">{item.name}</p>
-                      <p className="text-sm text-slate-500">{formatCurrency(item.price)} x {item.qty}</p>
+                      <p className="text-sm text-slate-500">{formatRupiah(item.price)} x {item.qty}</p>
                     </div>
                   </div>
-                  <p className="font-bold text-slate-900">{formatCurrency(item.price * item.qty)}</p>
+                  <p className="font-bold text-slate-900">{formatRupiah(item.price * item.qty)}</p>
                 </div>
               ))}
             </div>
@@ -120,19 +114,19 @@ const OrderModal = ({ order, onClose }) => {
             <div className="w-full md:w-1/2 space-y-3">
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Subtotal</span>
-                <span className="font-medium">{formatCurrency(order.subtotal || order.total)}</span>
+                <span className="font-medium">{formatRupiah(order.subtotal || order.total)}</span>
               </div>
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Shipping Fee</span>
-                <span className="font-medium">{formatCurrency(order.shipping || 0)}</span>
+                <span className="font-medium">{formatRupiah(order.shipping || 0)}</span>
               </div>
               <div className="flex justify-between text-slate-600 text-sm">
                 <span>Tax</span>
-                <span className="font-medium">{formatCurrency(order.tax || 0)}</span>
+                <span className="font-medium">{formatRupiah(order.tax || 0)}</span>
               </div>
               <div className="flex justify-between items-center pt-3 mt-3 border-t border-slate-200">
                 <span className="font-bold text-slate-900">Total Payment</span>
-                <span className="text-xl font-black text-slate-900">{formatCurrency(order.total)}</span>
+                <span className="text-xl font-black text-slate-900">{formatRupiah(order.total)}</span>
               </div>
             </div>
           </div>
@@ -152,14 +146,6 @@ const Orders = () => {
     if (!user) return [];
     return allOrders.filter(o => o.customerId === user.id);
   }, [allOrders, user]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount || 0);
-  };
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -223,7 +209,7 @@ const Orders = () => {
                   <td className="p-4 font-bold text-slate-900">{order.id}</td>
                   <td className="p-4 text-slate-600">{new Date(order.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                   <td className="p-4 text-slate-600">{(order.items || []).reduce((acc, item) => acc + item.qty, 0)} Items</td>
-                  <td className="p-4 font-bold text-slate-900">{formatCurrency(order.total)}</td>
+                  <td className="p-4 font-bold text-slate-900">{formatRupiah(order.total)}</td>
                   <td className="p-4">{getStatusBadge(order.orderStatus)}</td>
                   <td className="p-4">
                     <button 
@@ -254,7 +240,7 @@ const Orders = () => {
             <div className="flex justify-between items-center pt-4 border-t border-slate-100">
               <div>
                 <p className="text-xs text-slate-500">Total Payment</p>
-                <p className="font-bold text-slate-900">{formatCurrency(order.total)}</p>
+                <p className="font-bold text-slate-900">{formatRupiah(order.total)}</p>
               </div>
               <button 
                 onClick={() => setSelectedOrder(order)}

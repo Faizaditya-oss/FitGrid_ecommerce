@@ -135,7 +135,7 @@ const AllProducts = () => {
     else result.sort((a, b) => (a.isNew === b.isNew ? 0 : a.isNew ? -1 : 1));
 
     return result;
-  }, [search, filters, sort]);
+  }, [allProducts, search, filters, sort]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);

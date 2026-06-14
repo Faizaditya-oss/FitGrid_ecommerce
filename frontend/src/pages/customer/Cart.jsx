@@ -6,13 +6,16 @@ import CartSummary from '../../components/cart/CartSummary';
 import EmptyCart from '../../components/cart/EmptyCart';
 import { CartContext } from '../../context/CartContext';
 import { productService } from '../../services/productService';
+import { useProducts } from '../../hooks/useProducts';
 
 const Cart = () => {
   const { cart: cartItems, updateQuantity, removeFromCart } = useContext(CartContext);
 
+  const allProducts = useProducts();
+
   const getProductStock = (productId) => {
-    const product = productService.getProductById(productId);
-    return product ? product.stock : 0;
+    const product = allProducts.find(p => p.id === productId);
+    return product ? parseInt(product.stock, 10) : 0;
   };
 
   const handleUpdateQuantity = (id, newQuantity, maxQuantity) => {

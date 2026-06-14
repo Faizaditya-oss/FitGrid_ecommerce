@@ -1,0 +1,35 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+
+include_once '../../config/database.php';
+
+$database = new Database();
+$conn = $database->getConnection();
+
+$query = "SELECT * FROM products ORDER BY product_id DESC";
+$result = $conn->query($query);
+
+if ($result) {
+    $products = [];
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $row;
+    }
+    
+    http_response_code(200);
+    echo json_encode([
+        "success" => true,
+        "message" => "Berhasil mengambil semua produk.",
+        "data" => $products
+    ]);
+} else {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Gagal mengambil data produk: " . $conn->error,
+        "data" => []
+    ]);
+}
+
+$conn->close();
+?>

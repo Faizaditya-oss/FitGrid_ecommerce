@@ -2,20 +2,33 @@ import { ShoppingBag, Star } from 'lucide-react';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../../context/CartContext';
+import { formatRupiah } from '../../utils/currency';
+import toast from 'react-hot-toast';
 
 const ProductCard = ({ product, onViewDetail }) => {
-  const { addToCart } = useContext(CartContext);
+  const { addToCart, cart } = useContext(CartContext);
   const navigate = useNavigate();
 
   const handleQuickAdd = (e) => {
     e.stopPropagation();
     
-    const defaultSize = product.sizes ? product.sizes[0] : 'All Size';
-    const defaultColor = 'Standard'; 
+    const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'All Size';
+    const defaultColor = product.color || 'Standard';
 
     let numericPrice = product.priceNum || product.price;
     if (typeof numericPrice === 'string') {
-      numericPrice = parseInt(numericPrice.replace(/[^\d]/g, ''), 10) || 0;
+      numericPrice = parseFloat(numericPrice) || 0;
+    }
+
+    const maxStock = parseInt(product.stock, 10) || 0;
+    const itemsInCart = (cart || []).filter(item => item.productId === product.id).reduce((acc, item) => acc + item.quantity, 0);
+    const availableStock = Math.max(0, maxStock - itemsInCart);
+
+    if (availableStock <= 0) {
+      toast.error(`Stok ${product.name} telah habis!`, {
+        style: { borderRadius: '10px', background: '#333', color: '#fff' }
+      });
+      return;
     }
 
     const cartItem = {
@@ -31,7 +44,10 @@ const ProductCard = ({ product, onViewDetail }) => {
     };
 
     addToCart(cartItem);
-    alert('Added to cart!');
+    toast.success(`${product.name} ditambahkan ke keranjang!`, {
+      style: { borderRadius: '10px', background: '#333', color: '#fff' },
+      iconTheme: { primary: '#4ade80', secondary: '#fff' }
+    });
   };
 
   return (
@@ -86,17 +102,17 @@ const ProductCard = ({ product, onViewDetail }) => {
           <span className="text-xs text-slate-400 ml-1">({product.reviews})</span>
         </div>
 
-        {/* Price */}
-        <div className="flex items-center gap-2 mt-auto">
-          <span className="font-extrabold text-slate-900 text-lg">
-            {typeof product.price === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price) : product.price}
+      {/* Price */}
+      <div className="flex items-center gap-2 mt-auto">
+        <span className="font-extrabold text-slate-900 text-lg">
+          {formatRupiah(product.price)}
+        </span>
+        {product.originalPrice && (
+          <span className="text-slate-400 text-sm line-through">
+            {formatRupiah(product.originalPrice)}
           </span>
-          {product.originalPrice && (
-            <span className="text-slate-400 text-sm line-through">
-              {typeof product.originalPrice === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.originalPrice) : product.originalPrice}
-            </span>
-          )}
-        </div>
+        )}
+      </div>
 
         {/* View Detail Button */}
         <button
