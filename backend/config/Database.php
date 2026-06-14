@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "ecommerce_fashion";
+    private $db_name = "fashion_store";
     private $username = "root";
     private $password = "";
     public $conn;
@@ -9,13 +9,13 @@ class Database {
     public function getConnection() {
         $this->conn = null;
 
-        try {
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->exec("set names utf8");
-        } catch(PDOException $exception) {
-            echo "Database Connection Error: " . $exception->getMessage();
+        $this->conn = new mysqli($this->host, $this->username, $this->password, $this->db_name);
+
+        if ($this->conn->connect_error) {
+            die("Database Connection Error: " . $this->conn->connect_error);
         }
+
+        $this->conn->set_charset("utf8");
 
         return $this->conn;
     }

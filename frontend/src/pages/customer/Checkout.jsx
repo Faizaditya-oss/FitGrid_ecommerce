@@ -2,14 +2,21 @@ import { useContext, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { CartContext } from '../../context/CartContext';
+import { AuthContext } from '../../context/AuthContext';
+import { orderService } from '../../services/orderService';
+import { Navigate } from 'react-router-dom';
 
 const Checkout = () => {
   const { cart, clearCart } = useContext(CartContext);
+  const { user, loading } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('credit');
   const [selectedBank, setSelectedBank] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
+
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
 
   const vaNumber = useMemo(() => {
     if (paymentMethod !== 'va' || !selectedBank) return '';
@@ -45,11 +52,56 @@ const Checkout = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // mock api call
-    setTimeout(() => {
-      clearCart();
-      setIsSuccess(true);
-    }, 1000);
+    
+    if (paymentMethod === 'va' && !selectedBank) {
+      alert('Silakan pilih salah satu bank untuk metode pembayaran Virtual Account.');
+      return;
+    }
+
+    // Extract form data safely using FormData
+    const formData = new FormData(e.target);
+    const firstName = formData.get('firstName') || '';
+    const lastName = formData.get('lastName') || '';
+    const address = formData.get('address') || '';
+
+    const paymentProofFile = formData.get('paymentProof');
+
+    const processOrder = (proofBase64) => {
+      setTimeout(() => {
+        const orderData = {
+          customerId: user ? user.id : 'guest',
+          customer: user ? user.name : `${firstName} ${lastName}`,
+          address: address,
+          items: cart.map(item => ({ 
+            name: item.name, 
+            qty: item.quantity, 
+            price: item.price, 
+            image: item.image 
+          })),
+          total: total,
+          subtotal: subtotal,
+          shipping: shipping,
+          tax: tax,
+          discount: discount,
+          paymentMethod: paymentMethod === 'credit' ? 'Credit Card' : 'Virtual Account',
+          paymentProof: proofBase64
+        };
+        
+        orderService.createOrder(orderData);
+        clearCart();
+        setIsSuccess(true);
+      }, 1000);
+    };
+
+    if (paymentMethod === 'va' && paymentProofFile && paymentProofFile.size > 0) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        processOrder(reader.result);
+      };
+      reader.readAsDataURL(paymentProofFile);
+    } else {
+      processOrder(null);
+    }
   };
 
   if (isSuccess) {
@@ -102,15 +154,15 @@ const Checkout = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-bold text-slate-700">Email Address</label>
-                  <input type="email" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="you@example.com" />
+                  <input type="email" name="email" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="you@example.com" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">First Name</label>
-                  <input type="text" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="First Name" />
+                  <input type="text" name="firstName" required pattern="[A-Za-z\s]+" title="Hanya huruf yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="First Name" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">Last Name</label>
-                  <input type="text" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Last Name" />
+                  <input type="text" name="lastName" required pattern="[A-Za-z\s]+" title="Hanya huruf yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Last Name" />
                 </div>
               </div>
             </section>
@@ -121,23 +173,23 @@ const Checkout = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-bold text-slate-700">Address</label>
-                  <input type="text" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Street Address" />
+                  <input type="text" name="address" required pattern="[A-Za-z\s]+" title="Hanya huruf yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Street Address" />
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-bold text-slate-700">Apartment, suite, etc. (optional)</label>
-                  <input type="text" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Apartment, suite, etc." />
+                  <input type="text" name="apartment" pattern="[A-Za-z\s]+" title="Hanya huruf yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Apartment, suite, etc." />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">City</label>
-                  <input type="text" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="City" />
+                  <input type="text" name="city" required pattern="[A-Za-z\s]+" title="Hanya huruf yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="City" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">Postal Code</label>
-                  <input type="text" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Postal Code" />
+                  <input type="text" name="postalCode" required pattern="[0-9]+" title="Hanya angka yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="Postal Code" />
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-bold text-slate-700">WhatsApp Number</label>
-                  <input type="tel" required className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="+62" />
+                  <input type="tel" name="whatsapp" required pattern="[0-9]+" title="Hanya angka yang diperbolehkan" className="w-full border-2 border-slate-100 rounded-xl px-4 py-3.5 focus:outline-none focus:border-slate-900 focus:ring-0 transition-colors bg-slate-50/50" placeholder="0812xxxxxxxx" />
                 </div>
               </div>
             </section>
@@ -241,6 +293,7 @@ const Checkout = () => {
                       <label className="text-sm font-bold text-slate-700 block">Upload Payment Proof</label>
                       <input 
                         type="file" 
+                        name="paymentProof"
                         accept="image/*" 
                         required={paymentMethod === 'va'}
                         className="block w-full text-sm text-slate-500

@@ -1,6 +1,6 @@
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
-import { ALL_PRODUCTS } from '../../pages/public/AllProducts';
+import { productService } from '../../services/productService';
 
 const Breadcrumbs = ({ className = "container mx-auto px-4 pt-6 pb-2" }) => {
   const location = useLocation();
@@ -49,7 +49,7 @@ const Breadcrumbs = ({ className = "container mx-auto px-4 pt-6 pb-2" }) => {
     crumbs.push({ label: 'All Products', path: '/products', isLast: false });
     
     const productId = pathnames[1];
-    const product = ALL_PRODUCTS.find((p) => p.id === productId);
+    const product = productService.getProductById(productId);
 
     if (product) {
       // Insert product's category as a breadcrumb segment before the product name

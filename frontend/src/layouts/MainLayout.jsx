@@ -59,7 +59,27 @@ const MainLayout = () => {
                     <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
                     <p className="text-xs text-slate-500 truncate mt-0.5">{user.email}</p>
                   </div>
-                  <div className="p-2">
+                  <div className="p-2 flex flex-col gap-1">
+                    <Link
+                      to="/profile"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors font-medium"
+                    >
+                      My Orders
+                    </Link>
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
                     <button 
                       onClick={() => {
                         logout();

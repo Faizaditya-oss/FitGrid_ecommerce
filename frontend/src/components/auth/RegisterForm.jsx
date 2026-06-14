@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { authService } from '../../services/authService';
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -12,22 +12,37 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Dummy Auth Logic
-    setTimeout(() => {
-      login({ id: 2, name: formData.name || 'User', email: formData.emailOrUsername });
-      navigate('/');
-    }, 1000);
+    try {
+      const userData = {
+        username: formData.name,
+        email: formData.emailOrUsername,
+        password: formData.password,
+        phone_number: formData.phone
+      };
+
+      const response = await authService.register(userData);
+
+      if (response.success) {
+        alert(response.message);
+        navigate('/login');
+      } else {
+        setError(response.message || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

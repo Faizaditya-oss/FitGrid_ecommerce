@@ -1,40 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { CartContext } from '../../context/CartContext';
+import { toast } from 'react-hot-toast';
+import { productService } from '../../services/productService';
 import heroImg from '../../assets/images/hero/hero.jpg';
 import catalog1 from '../../assets/images/products/catalog1.jpg';
 import catalog2 from '../../assets/images/products/catalog2.jpg';
 import catalog3 from '../../assets/images/products/catalog3.jpg';
 import catalog4 from '../../assets/images/products/catalog4.jpg';
 
-const trendingProducts = [
-  {
-    id: 1,
-    name: "Basic T-Shirt",
-    category: "Men's Top",
-    price: "Rp 435.000",
-    image: catalog1
-  },
-  {
-    id: 2,
-    name: "Red Flannel Shirt",
-    category: "Men's Top",
-    price: "Rp 1.335.000",
-    image: catalog2
-  },
-  {
-    id: 3,
-    name: "Denim Jeans",
-    category: "Men's Pants",
-    price: "Rp 885.000",
-    image: catalog3
-  },
-  {
-    id: 4,
-    name: "Women's Trousers",
-    category: "Women's Pants",
-    price: "Rp 1.800.000",
-    image: catalog4
-  }
-];
+import { useProducts } from '../../hooks/useProducts';
 
 const testimonials = [
   {
@@ -97,6 +72,61 @@ const testimonials = [
 
 
 const Home = () => {
+  const { addToCart, cart } = useContext(CartContext);
+  const navigate = useNavigate();
+  const allProducts = useProducts();
+  const trendingProducts = allProducts.slice(0, 4);
+
+  const handleQuickAdd = (e, product) => {
+    e.stopPropagation(); // Prevent navigating to product detail if the card is clickable
+    
+    const fullProduct = productService.getProductById(product.id) || product;
+    const defaultSize = fullProduct.sizes ? fullProduct.sizes[0] : "All Size";
+    
+    let defaultColor = "Standard";
+    if (fullProduct.name === "Basic T-Shirt") defaultColor = "Black";
+    else if (fullProduct.name === "Denim Jeans") defaultColor = "Classic Blue";
+    else if (fullProduct.name === "Red Flannel Shirt") defaultColor = "Red";
+    else if (fullProduct.name === "Women's Trousers") defaultColor = "Beige";
+
+    const maxStock = fullProduct.stock || 0;
+    
+    const itemsInCart = (cart || []).filter(item => item.productId === product.id).reduce((acc, item) => acc + item.quantity, 0);
+    const availableStock = Math.max(0, maxStock - itemsInCart);
+
+    if (availableStock <= 0) {
+      toast.error(`Stok ${product.name} telah habis!`, {
+        style: { borderRadius: '10px', background: '#333', color: '#fff' }
+      });
+      return;
+    }
+
+    const cartItem = {
+      id: `${product.id}-${defaultSize}-${defaultColor}`,
+      productId: product.id,
+      name: product.name,
+      category: product.category,
+      price: fullProduct.price,
+      size: defaultSize,
+      color: defaultColor,
+      image: product.image,
+      quantity: 1,
+    };
+
+    addToCart(cartItem);
+    toast.success(`${product.name} ditambahkan ke keranjang!`, {
+      style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+      },
+      iconTheme: {
+        primary: '#4ade80',
+        secondary: '#fff',
+      },
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
@@ -146,7 +176,11 @@ const Home = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {trendingProducts.map((product) => (
-            <div key={product.id} className="group cursor-pointer hover-lift">
+            <div 
+              key={product.id} 
+              className="group cursor-pointer hover-lift"
+              onClick={() => navigate(`/products/${product.id}`)}
+            >
               <div className="aspect-[3/4] bg-gray-200 rounded-2xl mb-4 overflow-hidden relative">
                 <img 
                   src={product.image} 
@@ -154,7 +188,10 @@ const Home = () => {
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                  <button className="glass text-primary px-6 py-2 rounded-full font-medium shadow-sm hover:bg-primary hover:text-white transition-colors">
+                  <button 
+                    onClick={(e) => handleQuickAdd(e, product)}
+                    className="glass text-primary px-6 py-2 rounded-full font-medium shadow-sm hover:bg-primary hover:text-white transition-colors"
+                  >
                     Quick Add
                   </button>
                 </div>
@@ -162,7 +199,7 @@ const Home = () => {
               <div className="px-2">
                 <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
                 <p className="text-secondary mb-1">{product.category}</p>
-                <p className="font-semibold">{product.price}</p>
+                <p className="text-lg font-bold text-slate-900 mt-1">Rp {Number(product.price).toLocaleString('id-ID')}</p>
               </div>
             </div>
           ))}

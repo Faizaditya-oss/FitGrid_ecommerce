@@ -13,11 +13,9 @@ const ProductCard = ({ product, onViewDetail }) => {
     const defaultSize = product.sizes ? product.sizes[0] : 'All Size';
     const defaultColor = 'Standard'; 
 
-    let numericPrice = product.priceNum;
-    if (!numericPrice && typeof product.price === 'string') {
-      numericPrice = parseInt(product.price.replace(/[^\d]/g, ''), 10) || 0;
-    } else if (!numericPrice) {
-      numericPrice = product.price || 0;
+    let numericPrice = product.priceNum || product.price;
+    if (typeof numericPrice === 'string') {
+      numericPrice = parseInt(numericPrice.replace(/[^\d]/g, ''), 10) || 0;
     }
 
     const cartItem = {
@@ -90,9 +88,13 @@ const ProductCard = ({ product, onViewDetail }) => {
 
         {/* Price */}
         <div className="flex items-center gap-2 mt-auto">
-          <span className="font-extrabold text-slate-900 text-lg">{product.price}</span>
+          <span className="font-extrabold text-slate-900 text-lg">
+            {typeof product.price === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price) : product.price}
+          </span>
           {product.originalPrice && (
-            <span className="text-slate-400 text-sm line-through">{product.originalPrice}</span>
+            <span className="text-slate-400 text-sm line-through">
+              {typeof product.originalPrice === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.originalPrice) : product.originalPrice}
+            </span>
           )}
         </div>
 

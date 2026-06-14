@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Package, Truck, CheckCircle2, CircleDashed } from 'lucide-react';
+import { orderService } from '../../services/orderService';
 
 const TrackOrder = () => {
   const [orderId, setOrderId] = useState('');
@@ -12,24 +13,29 @@ const TrackOrder = () => {
     if (!orderId || !email) return;
     
     setLoading(true);
-    // Simulate API Call
     setTimeout(() => {
-      setTracking({
-        orderId: orderId,
-        status: 'In Transit',
-        carrier: 'FedEx',
-        trackingNumber: 'FDX9876543210',
-        estimatedDelivery: 'Oct 24, 2026',
-        steps: [
-          { title: 'Order Placed', date: 'Oct 20, 2026, 09:41 AM', completed: true },
-          { title: 'Processing', date: 'Oct 21, 2026, 14:20 PM', completed: true },
-          { title: 'Shipped', date: 'Oct 22, 2026, 08:15 AM', completed: true },
-          { title: 'In Transit', date: 'Arrived at local facility', completed: false, current: true },
-          { title: 'Delivered', date: 'Estimated: Oct 24, 2026', completed: false },
-        ]
-      });
+      const order = orderService.getOrderById(orderId);
+      if (order) {
+        setTracking({
+          orderId: order.id,
+          status: order.orderStatus,
+          carrier: 'FitGrid Express',
+          trackingNumber: `FG-${order.id}`,
+          estimatedDelivery: new Date(new Date(order.date).getTime() + 3 * 24 * 60 * 60 * 1000).toDateString(), // +3 days
+          steps: [
+            { title: 'Order Placed', date: new Date(order.date).toLocaleString(), completed: true },
+            { title: 'Processing', date: 'Processing your order', completed: order.orderStatus === 'Processing' || order.orderStatus === 'Shipped' || order.orderStatus === 'Completed', current: order.orderStatus === 'Pending' },
+            { title: 'Shipped', date: 'Handed to carrier', completed: order.orderStatus === 'Shipped' || order.orderStatus === 'Completed', current: order.orderStatus === 'Processing' },
+            { title: 'In Transit', date: 'On the way', completed: order.orderStatus === 'Completed', current: order.orderStatus === 'Shipped' },
+            { title: 'Delivered', date: 'Order received', completed: order.orderStatus === 'Completed', current: order.orderStatus === 'Completed' },
+          ]
+        });
+      } else {
+        alert('Order not found or email does not match.');
+        setTracking(null);
+      }
       setLoading(false);
-    }, 1500);
+    }, 1000);
   };
 
   return (

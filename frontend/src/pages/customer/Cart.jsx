@@ -5,17 +5,14 @@ import CartItem from '../../components/cart/CartItem';
 import CartSummary from '../../components/cart/CartSummary';
 import EmptyCart from '../../components/cart/EmptyCart';
 import { CartContext } from '../../context/CartContext';
+import { productService } from '../../services/productService';
 
 const Cart = () => {
   const { cart: cartItems, updateQuantity, removeFromCart } = useContext(CartContext);
 
   const getProductStock = (productId) => {
-    const stocks = {
-      m1: 15, m2: 8, m3: 12, m4: 5, m5: 20, m6: 7, m7: 3, m8: 10,
-      w1: 6, w2: 14, w3: 9, w4: 11, w5: 4, w6: 18, w7: 5, w8: 12,
-      k1: 25, k2: 8, k3: 10, k4: 6, k5: 15, k6: 4, k7: 9, k8: 7
-    };
-    return stocks[productId] || 10;
+    const product = productService.getProductById(productId);
+    return product ? product.stock : 0;
   };
 
   const handleUpdateQuantity = (id, newQuantity, maxQuantity) => {

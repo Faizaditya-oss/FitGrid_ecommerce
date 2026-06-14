@@ -18,7 +18,9 @@ const ProductInfo = ({ product }) => {
       </div>
 
       <div className="mb-6">
-        <span className="text-3xl font-extrabold text-slate-900">{product.price}</span>
+        <span className="text-3xl font-extrabold text-slate-900">
+          {typeof product.price === 'number' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price) : product.price}
+        </span>
       </div>
 
       <p className="text-slate-600 leading-relaxed mb-6">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from 'react';
+import { useState, useMemo, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductInfo from '../../components/product/ProductInfo';
@@ -8,7 +8,7 @@ import AddToCartButton from '../../components/product/AddToCartButton';
 import RelatedProducts from '../../components/product/RelatedProducts';
 import { CartContext } from '../../context/CartContext';
 
-import { ALL_PRODUCTS } from './AllProducts';
+import { useProducts } from '../../hooks/useProducts';
 import BasicTshirtWhite from '../../assets/images/products/BasicShirt/BasicTshirtWhite.jpg';
 import BasicTshirtNavy from '../../assets/images/products/BasicShirt/BasicTshirtNavy.jpg';
 import BasicTshirtGreen from '../../assets/images/products/BasicShirt/BasicTshirtGreen.jpg';
@@ -34,9 +34,12 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart, cart } = useContext(CartContext);
   
-  const productData = ALL_PRODUCTS.find(p => p.id === id) || ALL_PRODUCTS[0];
+  const allProducts = useProducts();
+
+  const productData = allProducts.find(p => p.id === id) || allProducts[0];
 
   const product = useMemo(() => {
+    if (!productData) return null;
     let images = [productData.image, productData.image, productData.image, productData.image];
     let colors = ["Standard", "Alternative"];
 
@@ -116,24 +119,24 @@ const ProductDetail = () => {
     };
   }, [productData]);
 
-  const relatedProducts = ALL_PRODUCTS
-    .filter(p => p.category === product.category && p.id !== product.id)
+  const relatedProducts = allProducts
+    .filter(p => p.category === product?.category && p.id !== product?.id)
     .slice(0, 4);
 
   if (relatedProducts.length < 4) {
-    const more = ALL_PRODUCTS.filter(p => p.id !== product.id && !relatedProducts.find(r => r.id === p.id)).slice(0, 4 - relatedProducts.length);
+    const more = allProducts.filter(p => p.id !== product?.id && !relatedProducts.find(r => r.id === p.id)).slice(0, 4 - relatedProducts.length);
     relatedProducts.push(...more);
   }
   
   // State for product selections
-  const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[0] : "All Size");
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(product?.sizes ? product.sizes[0] : "All Size");
+  const [selectedColor, setSelectedColor] = useState(product?.colors[0]);
   const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState(product.images[0]);
+  const [activeImage, setActiveImage] = useState(product?.images[0]);
 
   // Calculate available stock based on what's already in the cart
-  const itemsInCart = (cart || []).filter(item => item.productId === product.id).reduce((acc, item) => acc + item.quantity, 0);
-  const availableStock = Math.max(0, product.stock - itemsInCart);
+  const itemsInCart = (cart || []).filter(item => item.productId === product?.id).reduce((acc, item) => acc + item.quantity, 0);
+  const availableStock = Math.max(0, (product?.stock || 0) - itemsInCart);
 
   useEffect(() => {
     if (quantity > availableStock && availableStock > 0) {
@@ -215,9 +218,9 @@ const ProductDetail = () => {
       };
     }
     return {
-      "Standard": product.images[0]
+      "Standard": product?.images[0]
     };
-  }, [product.name, product.images]);
+  }, [product?.name, product?.images]);
 
   const handleColorChange = (color) => {
     setSelectedColor(color);
@@ -237,11 +240,13 @@ const ProductDetail = () => {
   // Reset states when ID changes
   useEffect(() => {
     window.scrollTo(0, 0);
-    setSelectedSize(product.sizes ? product.sizes[0] : "All Size");
-    setSelectedColor(product.colors[0]);
-    setActiveImage(product.images[0]);
-    setQuantity(1);
-  }, [id, product.sizes, product.colors, product.images]);
+    if (product) {
+      setSelectedSize(product.sizes ? product.sizes[0] : "All Size");
+      setSelectedColor(product.colors[0]);
+      setActiveImage(product.images[0]);
+      setQuantity(1);
+    }
+  }, [id, product]);
 
   const handleAddToCart = () => {
     let numericPrice = product.priceNum;
@@ -288,6 +293,8 @@ const ProductDetail = () => {
     addToCart(cartItem);
     navigate('/cart');
   };
+
+  if (!product) return <div className="p-8 text-center">Loading product...</div>;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">

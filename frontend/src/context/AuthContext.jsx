@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -7,26 +8,41 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching user from local storage or API
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const loadUserSession = () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    loadUserSession();
+    window.addEventListener('users_updated', loadUserSession);
+    return () => window.removeEventListener('users_updated', loadUserSession);
   }, []);
 
   const login = (userData) => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    // Note: authService.login already sets currentUser in localStorage, 
+    // but we can ensure it's set if login is called directly
+    localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    authService.logout();
+  };
+
+  const updateUser = (updatedData) => {
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

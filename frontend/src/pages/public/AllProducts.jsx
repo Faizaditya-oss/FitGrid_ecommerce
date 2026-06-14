@@ -7,67 +7,7 @@ import ProductSort from '../../components/product/ProductSort';
 import Breadcrumbs from '../../components/common/Breadcrumbs';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// ─── Product Data ─────────────────────────────────────────────────────────────
-import catalog1 from '../../assets/images/products/catalog1.jpg';
-import catalog2 from '../../assets/images/products/catalog2.jpg';
-import catalog3 from '../../assets/images/products/catalog3.jpg';
-import catalog4 from '../../assets/images/products/catalog4.jpg';
-
-// Men
-import chinoShorts from '../../assets/images/products/chinoShorts.jpg';
-import oxfordShirt from '../../assets/images/products/oxfordShirt.jpg';
-import slimChinos from '../../assets/images/products/slimChinos.jpg';
-import bomberJacket from '../../assets/images/products/bomberJacket.jpg';
-import cargoPants from '../../assets/images/products/cargoPants.jpg';
-
-// Women
-import floralDress from '../../assets/images/products/floralDress.jpg';
-import silkBlouse from '../../assets/images/products/silkBlouse.jpg';
-import midiSkirt from '../../assets/images/products/midiSkirt.jpg';
-import wrapDress from '../../assets/images/products/wrapDress.jpg';
-import linenPants from '../../assets/images/products/linenPants.jpg';
-import knitCardigan from '../../assets/images/products/knitCardigan.jpg';
-import pleatedSkirt from '../../assets/images/products/pleatedSkirt.jpg';
-
-// Kids
-import graphicTee from '../../assets/images/products/graphicTee.jpg';
-import tutuDress from '../../assets/images/products/tutuDress.jpg';
-import kidsOverall from '../../assets/images/products/kidsOverall.jpg';
-import cozyHoodie from '../../assets/images/products/cozyHoodie.jpg';
-import stripedShorts from '../../assets/images/products/stripedShorts.jpg';
-import denimJacket from '../../assets/images/products/denimJacket.jpg';
-import floralJumpsuit from '../../assets/images/products/floralJumpsuit.jpg';
-import joggerSet from '../../assets/images/products/joggerSet.jpg';
-
-export const ALL_PRODUCTS = [
-  // ── Men ──
-  { id: 'm1', name: 'Basic T-Shirt', category: 'Men', price: 'Rp 435.000', priceNum: 435000, originalPrice: null, discount: null, isNew: true, rating: 4, reviews: 128, sizes: ['S','M','L','XL'], image: catalog1 },
-  { id: 'm2', name: 'Denim Jeans', category: 'Men', price: 'Rp 885.000', priceNum: 885000, originalPrice: 'Rp 1.125.000', discount: 21, isNew: false, rating: 5, reviews: 84, sizes: ['M','L','XL'], image: catalog3 },
-  { id: 'm3', name: 'Red Flannel Shirt', category: 'Men', price: 'Rp 1.335.000', priceNum: 1335000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 57, sizes: ['S','M','L'], image: catalog2 },
-  { id: 'm4', name: 'Chino Shorts', category: 'Men', price: 'Rp 600.000', priceNum: 600000, originalPrice: 'Rp 750.000', discount: 20, isNew: false, rating: 4, reviews: 42, sizes: ['S','M','L'], image: chinoShorts },
-  { id: 'm5', name: 'Oxford Shirt', category: 'Men', price: 'Rp 1.125.000', priceNum: 1125000, originalPrice: null, discount: null, isNew: true, rating: 5, reviews: 31, sizes: ['XS','S','M'], image: oxfordShirt },
-  { id: 'm6', name: 'Slim Chinos', category: 'Men', price: 'Rp 975.000', priceNum: 975000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 66, sizes: ['S','M','L','XL'], image: slimChinos },
-  { id: 'm7', name: 'Bomber Jacket', category: 'Men', price: 'Rp 2.025.000', priceNum: 2025000, originalPrice: 'Rp 2.400.000', discount: 16, isNew: true, rating: 5, reviews: 22, sizes: ['S','M','L','XL'], image: bomberJacket },
-  { id: 'm8', name: 'Cargo Pants', category: 'Men', price: 'Rp 825.000', priceNum: 825000, originalPrice: null, discount: null, isNew: false, rating: 3, reviews: 19, sizes: ['L','XL','XXL'], image: cargoPants },
-  // ── Women ──
-  { id: 'w1', name: 'Floral Dress', category: 'Women', price: 'Rp 825.000', priceNum: 825000, originalPrice: null, discount: null, isNew: true, rating: 5, reviews: 210, sizes: ['XS','S','M','L'], image: floralDress },
-  { id: 'w2', name: "Women's Trousers", category: 'Women', price: 'Rp 1.800.000', priceNum: 1800000, originalPrice: 'Rp 2.250.000', discount: 20, isNew: false, rating: 5, reviews: 143, sizes: ['XS','S','M'], image: catalog4 },
-  { id: 'w3', name: 'Silk Blouse', category: 'Women', price: 'Rp 675.000', priceNum: 675000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 89, sizes: ['S','M','L','XL'], image: silkBlouse },
-  { id: 'w4', name: 'Midi Skirt', category: 'Women', price: 'Rp 750.000', priceNum: 750000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 76, sizes: ['XS','S','M','L'], image: midiSkirt },
-  { id: 'w5', name: 'Wrap Dress', category: 'Women', price: 'Rp 1.200.000', priceNum: 1200000, originalPrice: 'Rp 1.425.000', discount: 16, isNew: true, rating: 5, reviews: 54, sizes: ['S','M'], image: wrapDress },
-  { id: 'w6', name: 'Linen Pants', category: 'Women', price: 'Rp 1.050.000', priceNum: 1050000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 38, sizes: ['XS','S','M','L','XL'], image: linenPants },
-  { id: 'w7', name: 'Knit Cardigan', category: 'Women', price: 'Rp 900.000', priceNum: 900000, originalPrice: 'Rp 1.200.000', discount: 25, isNew: false, rating: 5, reviews: 115, sizes: ['S','M','L'], image: knitCardigan },
-  { id: 'w8', name: 'Pleated Skirt', category: 'Women', price: 'Rp 675.000', priceNum: 675000, originalPrice: null, discount: null, isNew: true, rating: 4, reviews: 29, sizes: ['XS','S','M'], image: pleatedSkirt },
-  // ── Kids ──
-  { id: 'k1', name: 'Boys Graphic Tee', category: 'Kids', price: 'Rp 225.000', priceNum: 225000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 61, sizes: ['XS','S','M'], image: graphicTee },
-  { id: 'k2', name: 'Girls Tutu Dress', category: 'Kids', price: 'Rp 375.000', priceNum: 375000, originalPrice: 'Rp 480.000', discount: 22, isNew: true, rating: 5, reviews: 47, sizes: ['XS','S'], image: tutuDress },
-  { id: 'k3', name: 'Kids Overalls', category: 'Kids', price: 'Rp 450.000', priceNum: 450000, originalPrice: null, discount: null, isNew: false, rating: 4, reviews: 38, sizes: ['XS','S','M','L'], image: kidsOverall },
-  { id: 'k4', name: 'Cozy Hoodie', category: 'Kids', price: 'Rp 525.000', priceNum: 525000, originalPrice: null, discount: null, isNew: false, rating: 5, reviews: 92, sizes: ['S','M','L'], image: cozyHoodie },
-  { id: 'k5', name: 'Striped Shorts', category: 'Kids', price: 'Rp 270.000', priceNum: 270000, originalPrice: 'Rp 360.000', discount: 25, isNew: false, rating: 3, reviews: 17, sizes: ['XS','S','M'], image: stripedShorts },
-  { id: 'k6', name: 'Denim Jacket', category: 'Kids', price: 'Rp 600.000', priceNum: 600000, originalPrice: null, discount: null, isNew: true, rating: 4, reviews: 23, sizes: ['S','M','L'], image: denimJacket },
-  { id: 'k7', name: 'Floral Jumpsuit', category: 'Kids', price: 'Rp 420.000', priceNum: 420000, originalPrice: null, discount: null, isNew: false, rating: 5, reviews: 55, sizes: ['XS','S'], image: floralJumpsuit },
-  { id: 'k8', name: 'Jogger Set', category: 'Kids', price: 'Rp 480.000', priceNum: 480000, originalPrice: 'Rp 600.000', discount: 20, isNew: true, rating: 4, reviews: 41, sizes: ['S','M','L'], image: joggerSet },
-];
+import { useProducts } from '../../hooks/useProducts';
 
 const ITEMS_PER_PAGE = 12;
 const DEFAULT_FILTERS = { category: 'All', size: '', priceRange: 'all' };
@@ -134,6 +74,7 @@ const AllProducts = () => {
     return searchParams.get('search') || '';
   };
 
+  const allProducts = useProducts();
   const [search, setSearch] = useState(getInitialSearch());
   const [filters, setFilters] = useState({ category: getInitialCategory(), size: '', priceRange: 'all' });
 
@@ -161,7 +102,7 @@ const AllProducts = () => {
   };
 
   const filtered = useMemo(() => {
-    let result = [...ALL_PRODUCTS];
+    let result = [...allProducts];
 
     // Search
     if (search.trim()) {
@@ -184,12 +125,12 @@ const AllProducts = () => {
     // Price Range
     if (filters.priceRange !== 'all') {
       const [min, max] = filters.priceRange.split('-').map(Number);
-      result = result.filter((p) => p.priceNum >= min && p.priceNum <= max);
+      result = result.filter((p) => p.price >= min && p.price <= max);
     }
 
     // Sort
-    if (sort === 'price-asc') result.sort((a, b) => a.priceNum - b.priceNum);
-    else if (sort === 'price-desc') result.sort((a, b) => b.priceNum - a.priceNum);
+    if (sort === 'price-asc') result.sort((a, b) => a.price - b.price);
+    else if (sort === 'price-desc') result.sort((a, b) => b.price - a.price);
     else if (sort === 'rating') result.sort((a, b) => b.rating - a.rating);
     else result.sort((a, b) => (a.isNew === b.isNew ? 0 : a.isNew ? -1 : 1));
 
@@ -213,7 +154,7 @@ const AllProducts = () => {
           ALL PRODUCTS
         </h1>
         <p className="text-slate-500 text-sm md:text-base">
-          Discover {ALL_PRODUCTS.length} curated fashion pieces for everyone.
+          Discover {allProducts.length} curated fashion pieces for everyone.
         </p>
       </div>
 

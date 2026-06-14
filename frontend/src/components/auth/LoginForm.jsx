@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import PasswordInput from './PasswordInput';
 import SocialLogin from './SocialLogin';
 import { AuthContext } from '../../context/AuthContext';
+import { userService } from '../../services/userService';
+import { authService } from '../../services/authService';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -12,21 +14,38 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Dummy Auth Logic
-    setTimeout(() => {
-      if (email === 'user@example.com' && password === 'password123') {
-        login({ id: 1, name: 'John Doe', email });
-        navigate('/');
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (response.success && response.user) {
+        const formattedUser = {
+          id: response.user.user_id,
+          name: response.user.username,
+          email: response.user.email,
+          role: response.user.role,
+          status: response.user.status
+        };
+        
+        login(formattedUser);
+        
+        if (response.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
-        setError('Invalid email or password. Please try user@example.com / password123');
-        setIsLoading(false);
+        setError(response.message || 'Invalid email or password.');
       }
-    }, 1000);
+    } catch (err) {
+      setError('Connection error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
