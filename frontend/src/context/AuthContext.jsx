@@ -32,10 +32,26 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
   };
 
-  const updateUser = (updatedData) => {
+  const updateUser = async (updatedData) => {
     const updatedUser = { ...user, ...updatedData };
+    
+    // Optimistically update context and localStorage
     setUser(updatedUser);
     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+    if (updatedUser.id) {
+      try {
+        await fetch('http://localhost:8000/api/users/update.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedUser)
+        });
+      } catch (error) {
+        console.error("Failed to update user in database:", error);
+      }
+    }
   };
 
   return (

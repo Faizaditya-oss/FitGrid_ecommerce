@@ -96,27 +96,62 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = String(order.id).toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          String(order.customer || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || order.orderStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleVerifyPayment = (orderId) => {
+  const handleVerifyPayment = async (orderId) => {
     if(window.confirm('Verify payment for this order?')) {
-      const result = orderService.updateOrder(orderId, { paymentStatus: 'Paid' });
-      if (result) toast.success(`Payment verified for order ${orderId}`);
+      try {
+        const response = await fetch('http://localhost:8000/api/orders/update.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: orderId, paymentStatus: 'Paid' })
+        });
+        const result = await response.json();
+        if (result.success) {
+          toast.success(`Payment verified for order ${orderId}`);
+          window.dispatchEvent(new Event('orders_updated'));
+          if (selectedOrder && selectedOrder.id === orderId) {
+            setSelectedOrder(prev => ({ ...prev, paymentStatus: 'Paid' }));
+          }
+        } else {
+          toast.error(result.message || 'Failed to verify payment');
+        }
+      } catch (error) {
+        toast.error('Network error');
+      }
     }
   };
 
-  const handleUpdateStatus = (orderId) => {
+  const handleUpdateStatus = async (orderId) => {
     const statusCycle = ['Pending', 'Processing', 'Shipped', 'Completed'];
     const order = orders.find(o => o.id === orderId);
     if (order) {
       const currentIndex = statusCycle.indexOf(order.orderStatus);
       const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
-      const result = orderService.updateOrder(orderId, { orderStatus: nextStatus });
-      if (result) toast.success(`Order ${orderId} status updated to ${nextStatus}`);
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/orders/update.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: orderId, orderStatus: nextStatus })
+        });
+        const result = await response.json();
+        if (result.success) {
+          toast.success(`Order ${orderId} status updated to ${nextStatus}`);
+          window.dispatchEvent(new Event('orders_updated'));
+          if (selectedOrder && selectedOrder.id === orderId) {
+            setSelectedOrder(prev => ({ ...prev, orderStatus: nextStatus }));
+          }
+        } else {
+          toast.error(result.message || 'Failed to update status');
+        }
+      } catch (error) {
+        toast.error('Network error');
+      }
     }
   };
 

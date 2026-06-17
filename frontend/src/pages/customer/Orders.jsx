@@ -1,6 +1,6 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { useOrders } from '../../hooks/useOrders';
+
 import { Package, X, CheckCircle2, CircleDashed, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -138,14 +138,31 @@ const OrderModal = ({ order, onClose }) => {
 
 const Orders = () => {
   const { user } = useContext(AuthContext);
-  const allOrders = useOrders();
+  const [userOrders, setUserOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Filter orders by the logged in user
-  const userOrders = useMemo(() => {
-    if (!user) return [];
-    return allOrders.filter(o => o.customerId === user.id);
-  }, [allOrders, user]);
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (user && user.id) {
+        try {
+          const response = await fetch(`http://localhost:8000/api/orders/getByUser.php?user_id=${user.id}`);
+          const data = await response.json();
+          if (data.success) {
+            setUserOrders(data.data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch orders", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -181,7 +198,11 @@ const Orders = () => {
         <p className="text-slate-500 mt-2">View and track your current and past orders.</p>
       </div>
 
-      {userOrders.length === 0 ? (
+      {loading ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 text-center">
+          <p className="text-slate-500">Loading orders...</p>
+        </div>
+      ) : userOrders.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 text-center">
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-900 mb-2">No Orders Yet</h2>

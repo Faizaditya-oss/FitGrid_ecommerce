@@ -67,31 +67,38 @@ const Checkout = () => {
 
     const paymentProofFile = formData.get('paymentProof');
 
-    const processOrder = (proofBase64) => {
-      setTimeout(() => {
+    const processOrder = async (proofBase64) => {
+      try {
         const orderData = {
-          customerId: user ? user.id : 'guest',
-          customer: user ? user.name : `${firstName} ${lastName}`,
-          address: address,
-          items: cart.map(item => ({ 
-            name: item.name, 
-            qty: item.quantity, 
-            price: item.price, 
-            image: item.image 
-          })),
-          total: total,
-          subtotal: subtotal,
-          shipping: shipping,
-          tax: tax,
-          discount: discount,
-          paymentMethod: paymentMethod === 'credit' ? 'Credit Card' : 'Virtual Account',
-          paymentProof: proofBase64
+          user_id: user ? user.id : null,
+          recipient_name: user ? user.name : `${firstName} ${lastName}`,
+          recipient_phone: formData.get('whatsapp') || '',
+          shipping_address: `${address}, ${formData.get('apartment') ? formData.get('apartment') + ', ' : ''}${formData.get('city')}, ${formData.get('postalCode')}`,
+          shipping_cost: shipping,
         };
-        
-        orderService.createOrder(orderData);
-        clearCart();
-        setIsSuccess(true);
-      }, 1000);
+
+        const response = await fetch('http://localhost:8000/api/orders/checkout.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // You might still want to trigger the local clear cart and order event 
+          // just to clear context without reloading, though backend clears it too
+          await clearCart();
+          setIsSuccess(true);
+        } else {
+          alert('Checkout failed: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
+        alert('An error occurred during checkout. Please try again.');
+      }
     };
 
     if (paymentMethod === 'va' && paymentProofFile && paymentProofFile.size > 0) {
