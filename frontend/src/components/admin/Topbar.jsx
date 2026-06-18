@@ -37,9 +37,13 @@ const Topbar = ({ toggleSidebar }) => {
               <p className="text-sm font-bold text-slate-900">{user?.name || 'Admin User'}</p>
               <p className="text-xs text-slate-500">Administrator</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-              {(user?.name || 'A').charAt(0).toUpperCase()}
-            </div>
+            {user?.profile_picture ? (
+              <img src={user.profile_picture} alt="Profile" className="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                {(user?.name || 'A').charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
         </div>
       </div>

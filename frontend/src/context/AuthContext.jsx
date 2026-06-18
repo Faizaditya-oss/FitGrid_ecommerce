@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
 
     if (updatedUser.id) {
       try {
-        await fetch('http://localhost:8000/api/users/update.php', {
+        await fetch('http://localhost:8000/api/profile/updateProfile.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

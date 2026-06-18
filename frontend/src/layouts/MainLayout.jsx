@@ -47,9 +47,13 @@ const MainLayout = () => {
             {user ? (
               <div className="flex items-center gap-3 relative group">
                 <div className="flex items-center gap-2 cursor-pointer">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-200">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt={user.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-200">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  )}
                   <span className="text-sm font-semibold text-slate-700 hidden lg:block">{user.name}</span>
                 </div>
                 

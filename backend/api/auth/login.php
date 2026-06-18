@@ -24,7 +24,7 @@ if (!empty($data->email) && !empty($data->password)) {
     $email = $conn->real_escape_string($data->email);
     $password = $data->password;
 
-    $query = "SELECT user_id, username, email, password_hash, role, status FROM users WHERE email = ? LIMIT 1";
+    $query = "SELECT user_id, username, email, password_hash, role, status, profile_picture FROM users WHERE email = ? LIMIT 1";
     $stmt = $conn->prepare($query);
     
     if ($stmt) {
@@ -57,7 +57,8 @@ if (!empty($data->email) && !empty($data->password)) {
                         "username" => $user['username'],
                         "email" => $user['email'],
                         "role" => $user['role'],
-                        "status" => $user['status']
+                        "status" => $user['status'],
+                        "profile_picture" => !empty($user['profile_picture']) ? "http://localhost:8000/" . $user['profile_picture'] : null
                     ]
                 ]);
             } else {

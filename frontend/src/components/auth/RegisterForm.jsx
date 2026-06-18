@@ -14,13 +14,40 @@ const RegisterForm = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      // Only allow digits, max 13 characters
+      const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 13);
+      setFormData(prev => ({ ...prev, [name]: digitsOnly }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    // Validate email contains @
+    if (!formData.emailOrUsername.includes('@')) {
+      setError('Format email tidak valid. Email harus mengandung karakter "@".');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate phone max 13 digits
+    if (formData.phone.length > 13) {
+      setError('Nomor telepon maksimal 13 digit.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.phone.length < 9) {
+      setError('Nomor telepon minimal 9 digit.');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const userData = {
@@ -69,15 +96,15 @@ const RegisterForm = () => {
         )}
 
         <div className="space-y-2">
-          <label htmlFor="emailOrUsername" className="text-sm font-medium text-slate-700">Enter your username or email address</label>
+          <label htmlFor="emailOrUsername" className="text-sm font-medium text-slate-700">Email Address</label>
           <input 
-            type="text" 
+            type="email" 
             id="emailOrUsername" 
             name="emailOrUsername"
             value={formData.emailOrUsername}
             onChange={handleChange}
             required
-            placeholder="Username or email address"
+            placeholder="Email address"
             className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
           />
         </div>
@@ -106,9 +133,12 @@ const RegisterForm = () => {
               value={formData.phone}
               onChange={handleChange}
               required
-              placeholder="Contact Number"
+              placeholder="Contoh: 081234567890"
+              maxLength={13}
+              inputMode="numeric"
               className="w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors text-sm placeholder:text-slate-300" 
             />
+            <p className="text-xs text-slate-400 mt-1">{formData.phone.length}/13 digit</p>
           </div>
         </div>
 

@@ -1,7 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PasswordInput from './PasswordInput';
-import SocialLogin from './SocialLogin';
 import { AuthContext } from '../../context/AuthContext';
 import { userService } from '../../services/userService';
 import { authService } from '../../services/authService';
@@ -28,7 +27,8 @@ const LoginForm = () => {
           name: response.user.username,
           email: response.user.email,
           role: response.user.role,
-          status: response.user.status
+          status: response.user.status,
+          profile_picture: response.user.profile_picture
         };
         
         login(formattedUser);
@@ -101,8 +101,6 @@ const LoginForm = () => {
           {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
-
-      <SocialLogin />
 
       <p className="text-center text-sm font-medium text-slate-500 mt-8">
         Don't have an account?{' '}

@@ -7,6 +7,7 @@ import { User, Mail, Phone, Save, Camera } from 'lucide-react';
 const Profile = () => {
   const { user, updateUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -50,6 +51,46 @@ const Profile = () => {
     });
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      toast.error('Hanya format JPG, JPEG, dan PNG yang diizinkan.');
+      return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 2 MB.');
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadData = new FormData();
+    uploadData.append('user_id', user.id);
+    uploadData.append('avatar', file);
+
+    try {
+      const res = await fetch('http://localhost:8000/api/profile/uploadAvatar.php', {
+        method: 'POST',
+        body: uploadData
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        updateUser({ profile_picture: data.profile_picture });
+        toast.success('Foto profil berhasil diubah!');
+      } else {
+        toast.error(data.message || 'Gagal mengubah foto profil.');
+      }
+    } catch (err) {
+      toast.error('Terjadi kesalahan saat mengunggah foto.');
+    } finally {
+      setIsUploading(false);
+      e.target.value = null; // reset input
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -64,12 +105,22 @@ const Profile = () => {
           {/* Sidebar / Avatar Area */}
           <div className="md:w-1/3 bg-slate-50 p-8 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col items-center justify-center">
             <div className="relative group mb-6">
-              <div className="w-32 h-32 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-4xl border-4 border-white shadow-lg overflow-hidden">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              <div className="w-32 h-32 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-4xl border-4 border-white shadow-lg overflow-hidden relative">
+                {user.profile_picture ? (
+                  <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user.name ? user.name.charAt(0).toUpperCase() : 'U'
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-sm font-medium">
+                    Uploading...
+                  </div>
+                )}
               </div>
-              <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-colors">
+              <label className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-colors cursor-pointer">
                 <Camera className="w-5 h-5" />
-              </button>
+                <input type="file" accept="image/jpeg,image/png,image/jpg" className="hidden" onChange={handleAvatarUpload} disabled={isUploading} />
+              </label>
             </div>
             <h2 className="text-xl font-bold text-slate-900">{user.name}</h2>
             <p className="text-slate-500 text-sm mt-1">{user.email}</p>
