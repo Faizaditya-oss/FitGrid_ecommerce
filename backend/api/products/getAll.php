@@ -7,7 +7,13 @@ include_once '../../config/database.php';
 $database = new Database();
 $conn = $database->getConnection();
 
-$query = "SELECT * FROM products ORDER BY product_id DESC";
+$query = "SELECT p.*, 
+          COALESCE(AVG(r.rating), 0) as average_rating, 
+          COUNT(r.review_id) as total_reviews 
+          FROM products p 
+          LEFT JOIN reviews r ON p.product_id = r.product_id 
+          GROUP BY p.product_id 
+          ORDER BY p.product_id DESC";
 $result = $conn->query($query);
 
 if ($result) {

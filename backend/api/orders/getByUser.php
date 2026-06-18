@@ -17,7 +17,11 @@ $db = $database->getConnection();
 $user_id = isset($_GET['user_id']) ? $_GET['user_id'] : die();
 
 // Get orders
-$query = "SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC";
+$query = "SELECT o.*, p.payment_status, p.payment_method, p.payment_proof 
+          FROM orders o 
+          LEFT JOIN payments p ON o.order_id = p.order_id 
+          WHERE o.user_id = ? 
+          ORDER BY o.order_date DESC";
 $stmt = $db->prepare($query);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -41,14 +45,14 @@ while ($row = $result->fetch_assoc()) {
         "tax" => $row['subtotal'] * 0.1,
         "total" => $row['total_amount'],
         "orderStatus" => $row['status'],
-        "paymentStatus" => $row['payment_status'], // Default
-        "paymentMethod" => "Bank Transfer", // Default
+        "paymentStatus" => $row['payment_status'] ? $row['payment_status'] : 'Pending',
+        "paymentMethod" => $row['payment_method'] ? $row['payment_method'] : 'Bank Transfer',
         "paymentProof" => $row['payment_proof'],
         "items" => array()
     );
 
     // Get order items
-    $item_query = "SELECT oi.quantity, oi.price_at_purchase as price, p.name, p.image_url as image 
+    $item_query = "SELECT oi.product_id, oi.quantity, oi.price_at_purchase as price, p.name, p.image_url as image 
                    FROM order_items oi 
                    JOIN products p ON oi.product_id = p.product_id 
                    WHERE oi.order_id = ?";
@@ -59,6 +63,7 @@ while ($row = $result->fetch_assoc()) {
     
     while ($item_row = $item_result->fetch_assoc()) {
         array_push($order_item["items"], array(
+            "product_id" => $item_row['product_id'],
             "name" => $item_row['name'],
             "qty" => $item_row['quantity'],
             "price" => $item_row['price'],

@@ -16,9 +16,6 @@ const Checkout = () => {
   const [selectedBank, setSelectedBank] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
 
-  if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
-
   const vaNumber = useMemo(() => {
     if (paymentMethod !== 'va' || !selectedBank) return '';
     const prefix = {
@@ -51,6 +48,9 @@ const Checkout = () => {
     return { tax, shipping, discount, total };
   }, [subtotal, shippingMethod, shippingOptions]);
 
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -67,7 +67,7 @@ const Checkout = () => {
 
     const paymentProofFile = formData.get('paymentProof');
 
-    const processOrder = async (proofBase64) => {
+    const processOrder = async () => {
       try {
         const orderData = {
           user_id: user ? user.id : null,
@@ -75,6 +75,7 @@ const Checkout = () => {
           recipient_phone: formData.get('whatsapp') || '',
           shipping_address: `${address}, ${formData.get('apartment') ? formData.get('apartment') + ', ' : ''}${formData.get('city')}, ${formData.get('postalCode')}`,
           shipping_cost: shipping,
+          payment_method: paymentMethod === 'va' ? 'Virtual Account' : 'Credit Card',
         };
 
         const response = await fetch('http://localhost:8000/api/orders/checkout.php', {
@@ -87,7 +88,26 @@ const Checkout = () => {
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.order_id) {
+          // If virtual account and file is provided, upload payment proof
+          if (paymentMethod === 'va' && paymentProofFile && paymentProofFile.size > 0) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('order_id', data.order_id);
+            uploadFormData.append('payment_method', 'Virtual Account');
+            uploadFormData.append('payment_proof', paymentProofFile);
+
+            const uploadResponse = await fetch('http://localhost:8000/api/payments/upload.php', {
+              method: 'POST',
+              body: uploadFormData
+            });
+            const uploadData = await uploadResponse.json();
+            
+            if (!uploadData.success) {
+              console.error('Payment upload failed:', uploadData.message);
+              // We could alert user here, but order is already created
+            }
+          }
+
           // You might still want to trigger the local clear cart and order event 
           // just to clear context without reloading, though backend clears it too
           await clearCart();
@@ -101,15 +121,7 @@ const Checkout = () => {
       }
     };
 
-    if (paymentMethod === 'va' && paymentProofFile && paymentProofFile.size > 0) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        processOrder(reader.result);
-      };
-      reader.readAsDataURL(paymentProofFile);
-    } else {
-      processOrder(null);
-    }
+    processOrder();
   };
 
   if (isSuccess) {

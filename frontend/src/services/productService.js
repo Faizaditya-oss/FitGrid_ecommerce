@@ -15,8 +15,8 @@ export const productService = {
           originalPrice: null, // you can add logic if you have original price in DB
           discount: null,
           isNew: false,
-          rating: 0,
-          reviews: 0
+          rating: p.average_rating ? Number(p.average_rating) : 0,
+          reviews: p.total_reviews ? Number(p.total_reviews) : 0
         }));
       }
       return [];
@@ -37,6 +37,8 @@ export const productService = {
           id: p.product_id,
           image: p.image_url,
           sizes: p.size ? p.size.split(',') : [],
+          rating: p.average_rating ? Number(p.average_rating) : 0,
+          reviews: p.total_reviews ? Number(p.total_reviews) : 0
         };
       }
       return null;

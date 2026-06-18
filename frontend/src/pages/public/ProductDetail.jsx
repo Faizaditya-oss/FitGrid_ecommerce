@@ -1,5 +1,6 @@
 import { useState, useMemo, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductInfo from '../../components/product/ProductInfo';
 import ProductVariant from '../../components/product/ProductVariant';
@@ -19,6 +20,9 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  const [reviewsData, setReviewsData] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -52,6 +56,24 @@ const ProductDetail = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setLoadingReviews(true);
+      try {
+        const res = await fetch(`http://localhost:8000/api/reviews/getByProduct.php?product_id=${id}`);
+        const data = await res.json();
+        if (data.success) {
+          setReviewsData(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch reviews:", err);
+      } finally {
+        setLoadingReviews(false);
+      }
+    }
+    fetchReviews();
+  }, [id]);
+
   const product = useMemo(() => {
     if (!productData) return null;
     
@@ -65,8 +87,8 @@ const ProductDetail = () => {
       stock: (productData.stock !== undefined && productData.stock !== null) ? Number(productData.stock) : 10,
       images,
       colors,
-      rating: 4.8, // Dummy rating per requirements
-      reviews: 24, // Dummy reviews per requirements
+      rating: productData.rating || 0,
+      reviews: productData.reviews || 0,
       details: {
         bahan: "Premium Quality Material",
         spesifikasi: "Standard fit, comfortable design",
@@ -213,6 +235,37 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-16">
+        <h3 className="text-2xl font-bold text-slate-900 mb-8">Customer Reviews</h3>
+        {loadingReviews ? (
+          <p className="text-slate-500">Loading reviews...</p>
+        ) : reviewsData.length === 0 ? (
+          <p className="text-slate-500 italic">No reviews yet for this product. Be the first to review!</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reviewsData.map((review) => (
+              <div key={review.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-bold text-slate-900">{review.username}</p>
+                    <p className="text-xs text-slate-400">{new Date(review.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200 fill-slate-200'}`} />
+                    ))}
+                  </div>
+                </div>
+                {review.comment && (
+                  <p className="text-slate-600 text-sm leading-relaxed mt-2">{review.comment}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <RelatedProducts products={relatedProducts} onViewDetail={(p) => navigate(`/products/${p.id}`)} />

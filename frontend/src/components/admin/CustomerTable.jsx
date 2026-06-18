@@ -20,14 +20,14 @@ const CustomerTable = ({ customers, onViewDetail }) => {
               <td className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700">
-                    {customer.name.charAt(0)}
+                    {customer.name ? customer.name.charAt(0).toUpperCase() : '?'}
                   </div>
-                  <span className="font-medium text-slate-900">{customer.name}</span>
+                  <span className="font-medium text-slate-900">{customer.name || 'Unnamed'}</span>
                 </div>
               </td>
               <td className="p-4 text-slate-600">{customer.email}</td>
-              <td className="p-4 text-slate-600">{customer.phone}</td>
-              <td className="p-4 font-medium text-slate-900">{customer.totalOrders}</td>
+              <td className="p-4 text-slate-600">{customer.phone || '-'}</td>
+              <td className="p-4 font-medium text-slate-900">{customer.totalOrders || 0}</td>
               <td className="p-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${customer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
                   {customer.status}

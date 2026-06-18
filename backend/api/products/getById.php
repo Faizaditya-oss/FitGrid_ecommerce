@@ -10,7 +10,13 @@ $conn = $database->getConnection();
 if (isset($_GET['id'])) {
     $product_id = $_GET['id'];
 
-    $query = "SELECT * FROM products WHERE product_id = ? LIMIT 1";
+    $query = "SELECT p.*, 
+              COALESCE(AVG(r.rating), 0) as average_rating, 
+              COUNT(r.review_id) as total_reviews 
+              FROM products p 
+              LEFT JOIN reviews r ON p.product_id = r.product_id 
+              WHERE p.product_id = ? 
+              GROUP BY p.product_id LIMIT 1";
     $stmt = $conn->prepare($query);
     
     if ($stmt) {

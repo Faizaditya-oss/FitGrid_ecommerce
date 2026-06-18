@@ -19,10 +19,10 @@ const CustomerModal = ({ customer, onClose }) => {
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center font-bold text-2xl text-slate-700">
-              {customer.name.charAt(0)}
+              {customer.name ? customer.name.charAt(0).toUpperCase() : '?'}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{customer.name}</h3>
+              <h3 className="text-lg font-bold text-slate-900">{customer.name || 'Unnamed'}</h3>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${customer.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
                 {customer.status} Account
               </span>
@@ -39,7 +39,7 @@ const CustomerModal = ({ customer, onClose }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-slate-500">Phone</span>
-                  <span className="text-sm font-medium text-slate-900">{customer.phone}</span>
+                  <span className="text-sm font-medium text-slate-900">{customer.phone || '-'}</span>
                 </div>
               </div>
             </div>
@@ -48,7 +48,7 @@ const CustomerModal = ({ customer, onClose }) => {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Shopping Activity</p>
               <div className="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
                 <span className="text-sm text-slate-500">Total Orders</span>
-                <span className="text-lg font-bold text-slate-900">{customer.totalOrders}</span>
+                <span className="text-lg font-bold text-slate-900">{customer.totalOrders || 0}</span>
               </div>
             </div>
           </div>
@@ -67,7 +67,7 @@ const Customers = () => {
   const filteredCustomers = customers.filter(customer => 
     (customer.name && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (customer.phone && customer.phone.includes(searchTerm))
+    (customer.phone && String(customer.phone).includes(searchTerm))
   );
 
   return (

@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    const loadUsers = () => {
-      setUsers(userService.getUsers());
+    const loadUsers = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/users/getAll.php');
+        const data = await res.json();
+        if (data.success) {
+          setUsers(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
     };
     loadUsers();
     window.addEventListener('users_updated', loadUsers);

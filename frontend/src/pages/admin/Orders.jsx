@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, X, CheckCircle2, XCircle, FileText } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { orderService } from '../../services/orderService';
 import OrderTable from '../../components/admin/OrderTable';
@@ -7,12 +7,84 @@ import toast from 'react-hot-toast';
 
 import { formatRupiah } from '../../utils/currency';
 
-const OrderModal = ({ order, onClose }) => {
+const getPaymentBadge = (status) => {
+  const styles = {
+    Unpaid: 'bg-slate-100 text-slate-800',
+    Paid: 'bg-green-100 text-green-800',
+    Failed: 'bg-red-100 text-red-800',
+    Refunded: 'bg-purple-100 text-purple-800',
+  };
+  return <span className={`px-2 py-1 rounded text-xs font-semibold ${styles[status] || 'bg-slate-100 text-slate-800'}`}>{status}</span>;
+};
+
+const getOrderBadge = (status) => {
+  const styles = {
+    Pending: 'bg-amber-100 text-amber-800',
+    Processing: 'bg-blue-100 text-blue-800',
+    Shipped: 'bg-indigo-100 text-indigo-800',
+    Completed: 'bg-green-100 text-green-800',
+    Cancelled: 'bg-red-100 text-red-800',
+  };
+  return <span className={`px-2 py-1 rounded text-xs font-semibold ${styles[status] || 'bg-slate-100 text-slate-800'}`}>{status}</span>;
+};
+
+const OrderModal = ({ order, onClose, onRefresh }) => {
+  const [paymentData, setPaymentData] = useState(null);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const fetchPaymentData = async () => {
+    if (!order) return;
+    setIsLoadingPayment(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/payments/getByOrder.php?order_id=${order.id}`);
+      const data = await response.json();
+      if (data.success) {
+        setPaymentData(data.data);
+      } else {
+        setPaymentData(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch payment data', err);
+    } finally {
+      setIsLoadingPayment(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPaymentData();
+  }, [order]);
+
+  const handleVerify = async (status) => {
+    if (!window.confirm(`Are you sure you want to ${status === 'Paid' ? 'approve' : 'reject'} this payment?`)) return;
+    
+    setIsVerifying(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/payments/verify.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: order.id, status: status })
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast.success(`Payment ${status === 'Paid' ? 'approved' : 'rejected'} successfully`);
+        fetchPaymentData();
+        if (onRefresh) onRefresh(order.id, status);
+      } else {
+        toast.error(result.message || 'Failed to verify payment');
+      }
+    } catch (error) {
+      toast.error('Network error while verifying payment');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   if (!order) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="text-xl font-bold text-slate-900">Order Detail: {order.id}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-900 transition-colors">
@@ -39,23 +111,90 @@ const OrderModal = ({ order, onClose }) => {
               <div className="flex gap-4">
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Payment</span>
-                  <span className={`font-medium ${order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>{order.paymentStatus}</span>
+                  {getPaymentBadge(paymentData?.payment_status || order.paymentStatus || 'Unpaid')}
                 </div>
                 <div>
                   <span className="text-xs text-slate-500 block mb-1">Order</span>
-                  <span className="font-medium text-blue-600">{order.orderStatus}</span>
+                  {getOrderBadge(order.orderStatus)}
                 </div>
               </div>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Payment Proof</h3>
-              {order.paymentProof ? (
-                <a href={order.paymentProof} target="_blank" rel="noreferrer" className="block w-full h-24 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-pointer shadow-sm hover:shadow-md transition-all">
-                  <img src={order.paymentProof} alt="Payment Proof" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                </a>
+            
+            {/* Payment Verification Section */}
+            <div className="md:col-span-2 mt-2">
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Payment Verification</h3>
+              {isLoadingPayment ? (
+                <p className="text-sm text-slate-500">Loading payment info...</p>
+              ) : paymentData ? (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-slate-500">Method</p>
+                      <p className="font-semibold text-slate-900">{paymentData.payment_method}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Status</p>
+                      <p className="font-semibold text-slate-900">{paymentData.payment_status}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-slate-500">Date</p>
+                      <p className="font-semibold text-slate-900">
+                        {paymentData.payment_date ? new Date(paymentData.payment_date).toLocaleString('id-ID') : '-'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {paymentData.payment_proof && (
+                    <div className="mb-4">
+                      <p className="text-xs text-slate-500 mb-2">Proof Document</p>
+                      {paymentData.payment_proof.toLowerCase().endsWith('.pdf') ? (
+                        <a 
+                          href={`http://localhost:8000${paymentData.payment_proof}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          <FileText className="w-4 h-4" /> View PDF
+                        </a>
+                      ) : (
+                        <a 
+                          href={`http://localhost:8000${paymentData.payment_proof}`} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="block w-48 h-32 bg-white rounded-lg overflow-hidden border border-slate-200 cursor-pointer shadow-sm hover:shadow-md transition-all"
+                        >
+                          <img 
+                            src={`http://localhost:8000${paymentData.payment_proof}`} 
+                            alt="Payment Proof" 
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                          />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {paymentData.payment_status !== 'Paid' && (
+                    <div className="flex gap-3 pt-4 border-t border-slate-200 mt-4">
+                      <button 
+                        onClick={() => handleVerify('Paid')}
+                        disabled={isVerifying}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-4 h-4" /> Approve Payment
+                      </button>
+                      <button 
+                        onClick={() => handleVerify('Failed')}
+                        disabled={isVerifying}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <XCircle className="w-4 h-4" /> Reject Payment
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div className="w-full h-24 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-sm border border-dashed border-slate-300">
-                  No Receipt
+                <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 text-center">
+                  <p className="text-slate-500 text-sm">Customer has not uploaded payment proof yet</p>
                 </div>
               )}
             </div>
@@ -105,10 +244,10 @@ const Orders = () => {
   const handleVerifyPayment = async (orderId) => {
     if(window.confirm('Verify payment for this order?')) {
       try {
-        const response = await fetch('http://localhost:8000/api/orders/update.php', {
+        const response = await fetch('http://localhost:8000/api/payments/verify.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id: orderId, paymentStatus: 'Paid' })
+          body: JSON.stringify({ order_id: orderId, status: 'Paid' })
         });
         const result = await response.json();
         if (result.success) {
@@ -134,10 +273,10 @@ const Orders = () => {
       const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
       
       try {
-        const response = await fetch('http://localhost:8000/api/orders/update.php', {
+        const response = await fetch('http://localhost:8000/api/admin/orders/updateStatus.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id: orderId, orderStatus: nextStatus })
+          body: JSON.stringify({ order_id: orderId, status: nextStatus })
         });
         const result = await response.json();
         if (result.success) {
@@ -152,6 +291,17 @@ const Orders = () => {
       } catch (error) {
         toast.error('Network error');
       }
+    }
+  };
+
+  const handleRefreshModal = (orderId, status) => {
+    window.dispatchEvent(new Event('orders_updated'));
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder(prev => ({
+        ...prev, 
+        paymentStatus: status,
+        ...(status === 'Paid' ? { orderStatus: 'Processing' } : {})
+      }));
     }
   };
 
@@ -208,7 +358,11 @@ const Orders = () => {
         </div>
       </div>
 
-      <OrderModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      <OrderModal 
+        order={selectedOrder} 
+        onClose={() => setSelectedOrder(null)} 
+        onRefresh={handleRefreshModal}
+      />
     </div>
   );
 };

@@ -15,7 +15,10 @@ $database = new Database();
 $db = $database->getConnection();
 
 // Get orders
-$query = "SELECT * FROM orders ORDER BY order_date DESC";
+$query = "SELECT o.*, p.payment_status, p.payment_method, p.payment_proof 
+          FROM orders o 
+          LEFT JOIN payments p ON o.order_id = p.order_id 
+          ORDER BY o.order_date DESC";
 $stmt = $db->prepare($query);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -38,8 +41,8 @@ while ($row = $result->fetch_assoc()) {
         "tax" => $row['subtotal'] * 0.1, 
         "total" => $row['total_amount'],
         "orderStatus" => $row['status'],
-        "paymentStatus" => $row['payment_status'], 
-        "paymentMethod" => "Bank Transfer", 
+        "paymentStatus" => $row['payment_status'] ? $row['payment_status'] : 'Pending', 
+        "paymentMethod" => $row['payment_method'] ? $row['payment_method'] : 'Bank Transfer', 
         "paymentProof" => $row['payment_proof'],
         "items" => array()
     );

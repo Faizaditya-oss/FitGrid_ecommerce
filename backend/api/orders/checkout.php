@@ -79,15 +79,26 @@ if (
         // Hitung total_amount otomatis (termasuk tax dan shipping)
         $total_amount = $subtotal + $shipping_cost + $tax;
 
-        // 5. Simpan ke tabel orders dengan status Pending
-        $order_query = "INSERT INTO orders (user_id, recipient_name, recipient_phone, shipping_address, subtotal, shipping_cost, total_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')";
+        $payment_method = isset($data->payment_method) ? $data->payment_method : 'Bank Transfer';
+        $order_status = ($payment_method === 'Credit Card') ? 'Processing' : 'Pending';
+
+        // 5. Simpan ke tabel orders
+        $order_query = "INSERT INTO orders (user_id, recipient_name, recipient_phone, shipping_address, subtotal, shipping_cost, total_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt_order = $db->prepare($order_query);
-        $stmt_order->bind_param("isssddd", $user_id, $recipient_name, $recipient_phone, $shipping_address, $subtotal, $shipping_cost, $total_amount);
+        $stmt_order->bind_param("isssddds", $user_id, $recipient_name, $recipient_phone, $shipping_address, $subtotal, $shipping_cost, $total_amount, $order_status);
         
         if (!$stmt_order->execute()) {
             throw new Exception("Failed to create order.");
         }
         $order_id = $stmt_order->insert_id;
+
+        $payment_status = ($payment_method === 'Credit Card') ? 'Paid' : 'Unpaid';
+        $payment_query = "INSERT INTO payments (order_id, payment_method, payment_status) VALUES (?, ?, ?)";
+        $stmt_payment = $db->prepare($payment_query);
+        $stmt_payment->bind_param("iss", $order_id, $payment_method, $payment_status);
+        if (!$stmt_payment->execute()) {
+            throw new Exception("Failed to create payment record.");
+        }
 
         // Siapkan statement untuk order_items dan pengurangan stock
         $order_item_query = "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)";
